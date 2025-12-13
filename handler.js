@@ -197,11 +197,11 @@ const ___dirname = path.join(path.dirname(fileURLToPath(import.meta.url)), "plug
 const isCommand = m.text && global.prefix
   ? m.text.startsWith(global.prefix)
   : false
-if (!isCommand && typeof plugin.all !== "function") continue
 for (const name in global.plugins) {
 const plugin = global.plugins[name]
 if (!plugin) continue
 if (plugin.disabled) continue
+if (!isCommand && typeof plugin.all !== "function") continue
 const __filename = join(___dirname, name)
 if (typeof plugin.all === "function") {
 try {
