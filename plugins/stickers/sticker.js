@@ -50,11 +50,15 @@ const handler = async (msg, { conn, wa }) => {
 
   if (!isImage && !isVideo) {
     await conn.sendMessage(
-  m.chat,
+  chatId,
   {
-    { text: `⚠️ Envía o responde a una imagen o video con ${pref}s para crear un sticker.`, ...global.rcanal },  
-  { quoted: msg }  
-);
+    text: `⚠️ Envía o responde a una imagen o video con ${pref}s para crear un sticker.`
+  },
+  {
+    quoted: msg,
+    ...global.rcanal
+  }
+)
 
   try {
     await conn.sendMessage(chatId, { react: { text: "🕒", key: msg.key } });
