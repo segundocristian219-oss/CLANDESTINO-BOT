@@ -296,10 +296,15 @@ export default async function handler(msg, { conn, text }) {
       const [type, isDoc] = map[choice]
 
       const cached = cache[job.videoUrl]?.files?.[type]
-      if (cached && fs.existsSync(cached) && validFile(cached)) {
-        await sendFile(conn, job, cached, isDoc, type, job.commandMsg)
-        continue
-      }
+if (cached && fs.existsSync(cached) && validFile(cached)) {
+  await conn.sendMessage(
+    job.chatId,
+    { text: `⚡ Enviando desde tmp: ${type}` },
+    { quoted: job.commandMsg }
+  )
+  await sendFile(conn, job, cached, isDoc, type, job.commandMsg)
+  continue
+}
 
       await conn.sendMessage(
         job.chatId,
