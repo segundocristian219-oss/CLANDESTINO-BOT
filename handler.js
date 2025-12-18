@@ -33,7 +33,7 @@ export async function handler(chatUpdate) {
   if (!msgId) return
   if (global.processedMessages.has(msgId)) return
   global.processedMessages.add(msgId)
-  setTimeout(() => global.processedMessages.delete(msgId), 60000)
+  setTimeout(() => global.processedMessages.delete(msgId), 15000)
 
   if (m.key.fromMe) return
   if (global.db.data == null) await global.loadDatabase()
@@ -48,21 +48,11 @@ export async function handler(chatUpdate) {
 
       if (user) {
         if (!("name" in user)) user.name = m.name
-        if (!("genre" in user)) user.genre = ""
-        if (!("birth" in user)) user.birth = ""
-        if (!("marry" in user)) user.marry = ""
-        if (!("description" in user)) user.description = ""
-        if (!("packstickers" in user)) user.packstickers = null
         if (!("premium" in user)) user.premium = false
         if (!("banned" in user)) user.banned = false
         if (!("bannedReason" in user)) user.bannedReason = ""
       } else global.db.data.users[m.sender] = {
         name: m.name,
-        genre: "",
-        birth: "",
-        marry: "",
-        description: "",
-        packstickers: null,
         premium: false,
         banned: false,
         bannedReason: ""
@@ -99,15 +89,11 @@ export async function handler(chatUpdate) {
       if (settings) {
         if (!("self" in settings)) settings.self = false
         if (!("restrict" in settings)) settings.restrict = true
-        if (!("jadibotmd" in settings)) settings.jadibotmd = true
         if (!("antiPrivate" in settings)) settings.antiPrivate = false
-        if (!("gponly" in settings)) settings.gponly = false
       } else global.db.data.settings[this.user.jid] = {
         self: false,
         restrict: true,
-        jadibotmd: true,
-        antiPrivate: false,
-        gponly: false
+        antiPrivate: false
       }
     } catch (e) {
       console.error(e)
@@ -134,16 +120,9 @@ export async function handler(chatUpdate) {
 
     if (settings.self && !isOwners) return
 
-    if (
-      settings.gponly &&
-      !isOwners &&
-      !m.chat.endsWith("g.us") &&
-      !/code|p|ping|qr|estado|status|infobot|botinfo|report|reportar|invite|join|logout|suggest|help|menu/gim.test(m.text)
-    ) return
-
     if (opts["queque"] && m.text && !isPrems) {
       const queque = this.msgqueque
-      const time = 1000 * 5
+      const time = 1000 * 15
       const previousID = queque[queque.length - 1]
       queque.push(m.id || m.key.id)
 
@@ -157,12 +136,6 @@ export async function handler(chatUpdate) {
 
     const isCommand = typeof m.text === "string" && m.text.length > 0
 
-    const hasPrefix = global.prefix instanceof RegExp
-      ? global.prefix.test(m.text)
-      : Array.isArray(global.prefix)
-        ? global.prefix.some(p => m.text.startsWith(p))
-        : m.text.startsWith(global.prefix)
-
     let usedPrefix
     let groupMetadata = {}
     let participants = []
@@ -172,11 +145,10 @@ export async function handler(chatUpdate) {
     let isAdmin = false
     let isBotAdmin = false
 
-    if (m.isGroup && (hasPrefix || m.mentionedJid?.length)) {
+    if (m.isGroup) {
       try {
         global.groupCache ||= new Map()
         const cached = global.groupCache.get(m.chat)
-
         if (cached && Date.now() - cached.time < 60000) {
           groupMetadata = cached.data
         } else {
@@ -198,6 +170,13 @@ export async function handler(chatUpdate) {
 
         userGroup = userParticipant || {}
         botGroup = botParticipant || {}
+
+        if (m.action === "remove" || m.action === "leave") {
+          const removedJid = m.participants?.[0]
+          if (removedJid && removedJid === this.user.jid) {
+            global.groupCache.delete(m.chat)
+          }
+        }
       } catch (e) {
         console.error(e)
       }
@@ -237,18 +216,21 @@ export async function handler(chatUpdate) {
       if (!opts["restrict"])
         if (plugin.tags && plugin.tags.includes("admin")) continue
 
-      const pluginPrefix = plugin.customPrefix || conn.prefix || global.prefix
-      const match = (pluginPrefix instanceof RegExp
-        ? [[pluginPrefix.exec(m.text), pluginPrefix]]
-        : Array.isArray(pluginPrefix)
-          ? pluginPrefix.map(prefix => {
-              const regex = prefix instanceof RegExp ? prefix : new RegExp(strRegex(prefix))
-              return [regex.exec(m.text), regex]
-            })
-          : typeof pluginPrefix === "string"
-            ? [[new RegExp(strRegex(pluginPrefix)).exec(m.text), new RegExp(strRegex(pluginPrefix))]]
-            : [[[], new RegExp]]
-      ).find(prefix => prefix[1])
+      const pluginPrefix = plugin.customPrefix || null
+      const match = pluginPrefix
+        ? (
+            pluginPrefix instanceof RegExp
+              ? [[pluginPrefix.exec(m.text), pluginPrefix]]
+              : Array.isArray(pluginPrefix)
+                ? pluginPrefix.map(prefix => {
+                    const regex = prefix instanceof RegExp ? prefix : new RegExp(strRegex(prefix))
+                    return [regex.exec(m.text), regex]
+                  })
+                : typeof pluginPrefix === "string"
+                  ? [[new RegExp(strRegex(pluginPrefix)).exec(m.text), new RegExp(strRegex(pluginPrefix))]]
+                  : [[[], new RegExp]]
+          ).find(prefix => prefix[1])
+        : [[[""], null]]
 
       if (typeof plugin.before === "function") {
         if (await plugin.before.call(this, m, {
@@ -275,7 +257,7 @@ export async function handler(chatUpdate) {
 
       if (typeof plugin !== "function") continue
 
-      if ((usedPrefix = (match[0] || "")[0])) {
+      if ((usedPrefix = (match[0] || "")[0] || "")) {
         const noPrefix = m.text.replace(usedPrefix, "")
         let [command, ...args] = noPrefix.trim().split(" ").filter(v => v)
         let _args = noPrefix.trim().split(" ").slice(1)
