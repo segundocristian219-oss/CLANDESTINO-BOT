@@ -1,11 +1,14 @@
-// plugins/addco.js
 import fs from 'fs'
 import path from 'path'
 
 const jsonPath = path.resolve('./comandos.json')
 
 export async function handler(m, { conn }) {
-  // Verificar que el mensaje sea un sticker
+
+  if (!m.isGroup) {
+    return conn.sendMessage(m.chat, { text: '❌ Solo en grupos.' }, { quoted: m })
+  }
+
   const st =
     m.message?.stickerMessage ||
     m.message?.ephemeralMessage?.message?.stickerMessage ||
@@ -14,43 +17,45 @@ export async function handler(m, { conn }) {
 
   if (!st) {
     return conn.sendMessage(m.chat, {
-      text: "❌ Responde a un sticker para asignarle un comando."
+      text: '❌ Responde a un sticker.'
     }, { quoted: m })
   }
 
-  // Obtener el comando a vincular (solo argumento, sin el nombre del plugin)
-  const text = m.text?.split(/\s+/).slice(1).join(" ").trim()
+  const text = m.text?.split(/\s+/).slice(1).join(' ').trim()
   if (!text) {
     return conn.sendMessage(m.chat, {
-      text: "❌ Debes indicar el comando que quieres asociar al sticker.\nEjemplo: .addco kick"
+      text: '❌ Usa: .addco comando'
     }, { quoted: m })
   }
 
-  // Crear comandos.json si no existe
   if (!fs.existsSync(jsonPath)) fs.writeFileSync(jsonPath, '{}')
   const map = JSON.parse(fs.readFileSync(jsonPath, 'utf-8') || '{}')
 
-  // Obtener hash del sticker
   const rawSha = st.fileSha256 || st.fileSha256Hash || st.filehash
-  if (!rawSha) return conn.sendMessage(m.chat, { text: "❌ No se pudo obtener el hash del sticker." }, { quoted: m })
+  if (!rawSha) {
+    return conn.sendMessage(m.chat, {
+      text: '❌ No se pudo obtener el hash.'
+    }, { quoted: m })
+  }
 
   let hash
   if (Buffer.isBuffer(rawSha)) hash = rawSha.toString('base64')
   else if (ArrayBuffer.isView(rawSha)) hash = Buffer.from(rawSha).toString('base64')
   else hash = rawSha.toString()
 
-  // Guardar en JSON
-  map[hash] = text.startsWith('.') ? text : '.' + text
+  map[hash] = {
+    command: text.startsWith('.') ? text : '.' + text,
+    chat: m.chat
+  }
+
   fs.writeFileSync(jsonPath, JSON.stringify(map, null, 2))
 
-  // Reaccionar y enviar confirmación
-  await conn.sendMessage(m.chat, { react: { text: "✅", key: m.key } })
+  await conn.sendMessage(m.chat, { react: { text: '✅', key: m.key } })
   return conn.sendMessage(m.chat, {
-    text: `✅ Sticker vinculado al comando: ${map[hash]}`,
-    quoted: m
-  })
+    text: `✅ Sticker vinculado a ${map[hash].command}\n📌 Solo en este grupo`
+  }, { quoted: m })
 }
 
 handler.command = ['addco']
-handler.rowner = true // solo el dueño del bot puede usarlo
+handler.rowner = true
 export default handler
