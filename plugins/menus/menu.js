@@ -145,7 +145,7 @@ const handler = async (m, { conn }) => {
   await conn.sendMessage(
     m.chat,
     {
-      image: { url: "https://files.catbox.moe/5jj5xk.jpg" },
+      image: { url: "https://files.catbox.moe/j1q94p.jpg" },
       caption: menu,
       mentions: [m.sender]
     },
