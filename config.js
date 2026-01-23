@@ -14,12 +14,12 @@ global.prems = []
 
 global.emoji = '📎'
 global.emoji2 = '🏞️'
-global.namebot = ''
-global.botname = '𝐕𝐈𝐏 𝐁𝐎𝐓 𝐒𝐔𝐏𝐑𝐄𝐌𝐎'
+global.namebot = '𝐂𝐋𝐀𝐍𝐃𝐄𝐒𝐓𝐈𝐍𝐎 𝐁𝐎𝐓'
+global.botname = '𝐂𝐋𝐀𝐍𝐃𝐄𝐒𝐓𝐈𝐍𝐎 𝐁𝐎𝐓'
 global.banner = 'https://files.catbox.moe/6pjr7q.jpg'
-global.packname = '𝐕𝐈𝐏 𝐁𝐎𝐓 𝐒𝐔𝐏𝐑𝐄𝐌𝐎'
-global.author = '𝖣𝖾𝗌𝖺𝗋𝗅𝗅𝖺𝖽𝗈 𝗉𝗈𝗋 SANTOS'
-global.sessions = '𝐕𝐈𝐏 𝐁𝐎𝐓 𝐒𝐔𝐏𝐑𝐄𝐌𝐎'
+global.packname = '𝐂𝐋𝐀𝐍𝐃𝐄𝐒𝐓𝐈𝐍𝐎 𝐁𝐎𝐓'
+global.author = '𝖣𝖾𝗌𝖺𝗋olla𝖽𝗈 𝗉𝗈𝗋 Hernandez'
+global.sessions = '𝐂𝐋𝐀𝐍𝐃𝐄𝐒𝐓𝐈𝐍𝐎 𝐁𝐎𝐓'
 
 global.APIs = {
 sky: 'https://api-sky.ultraplus.click',
