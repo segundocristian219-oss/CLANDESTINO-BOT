@@ -14,9 +14,9 @@ global.prems = []
 
 global.emoji = '📎'
 global.emoji2 = '🏞️'
-global.namebot = '𝐕𝐈𝐏 𝐁𝐎𝐓 𝐒𝐔𝐏𝐑𝐄𝐌𝐎'
+global.namebot = ''
 global.botname = '𝐕𝐈𝐏 𝐁𝐎𝐓 𝐒𝐔𝐏𝐑𝐄𝐌𝐎'
-global.banner = 'https://files.catbox.moe/j1q94p.jpg'
+global.banner = 'https://files.catbox.moe/6pjr7q.jpg'
 global.packname = '𝐕𝐈𝐏 𝐁𝐎𝐓 𝐒𝐔𝐏𝐑𝐄𝐌𝐎'
 global.author = '𝖣𝖾𝗌𝖺𝗋𝗅𝗅𝖺𝖽𝗈 𝗉𝗈𝗋 SANTOS'
 global.sessions = '𝐕𝐈𝐏 𝐁𝐎𝐓 𝐒𝐔𝐏𝐑𝐄𝐌𝐎'
