@@ -1,89 +1,36 @@
-import yts from "yt-search"
-import axios from "axios"
+import fetch from 'node-fetch'
 
-const API_URL = "https://api-adonix.ultraplus.click/download/ytaudio"
-const API_KEY = "Angxlllll"
+const handler = async (m, { conn, text, command }) => {
 
-const handler = async (m, { conn, args }) => {
-  const query = args.join(" ").trim()
-  if (!query) return m.reply("🎶 Ingresa el nombre del video de YouTube.")
+  await conn.sendMessage(m.chat, { react: { text: "🔥", key: m.key } }).catch(() => {})
 
-  await conn.sendMessage(m.chat, {
-    react: { text: "🕘", key: m.key }
-  })
+  if (!text) throw `Ejemplo:\n${command} karma police`
 
   try {
-    const search = await yts(query)
-    const video = search?.videos?.[0]
-    if (!video) throw 0
+    const id = ((await fetch(`https://api.ryuzei.xyz/search/yts?q=${encodeURIComponent(text)}`, {
+      headers: { "User-Agent": "Mozilla/5.0" }
+    }).then(r => r.json()))?.results?.[0]?.id)
+    if (!id) throw "No encontré resultados"
 
-    await conn.sendMessage(
-      m.chat,
-      {
-        image: { url: video.thumbnail },
-        caption: `
-✧━───『 𝙄𝙣𝙛𝙤 𝙙𝙚𝙡 𝙑𝙞𝙙𝙚𝙤 』───━✧
+    const dl = await fetch(`https://api.ryuzei.xyz/dl/ytmp3?id=${id}`, {
+      headers: { "User-Agent": "Mozilla/5.0" }
+    }).then(r => r.text())
 
-🎼 Título: ${video.title}
-📺 Canal: ${video.author?.name || "—"}
-👁️ Vistas: ${formatViews(video.views)}
-⏳ Duración: ${video.timestamp || "—"}
-`.trim()
-      },
-      { quoted: m }
-    )
+    if (dl.startsWith("<")) throw "API bloqueada"
 
-    const { data } = await axios.get(API_URL, {
-      params: {
-        url: video.url,
-        apikey: API_KEY
-      },
-      headers: {
-        "User-Agent": "Mozilla/5.0",
-        "Accept": "application/json"
-      },
-      timeout: 20000
-    })
-
-    const audioUrl =
-      data?.data?.url ||
-      data?.datos?.url ||
-      null
-
-    if (!audioUrl || !/^https?:\/\//i.test(audioUrl)) throw 0
-
-    await conn.sendMessage(
-      m.chat,
-      {
-        audio: { url: audioUrl },
-        mimetype: "audio/mpeg",
-        fileName: cleanName(video.title) + ".mp3",
-        ptt: false
-      },
-      { quoted: m }
-    )
+    const { data, download } = JSON.parse(dl)
+    if (!download?.url) throw "No se obtuvo el audio"
 
     await conn.sendMessage(m.chat, {
-      react: { text: "✅", key: m.key }
-    })
+      audio: { url: download.url },
+      mimetype: "audio/mpeg",
+      fileName: `${data?.title || "audio"}.mp3`
+    }, { quoted: m })
 
-  } catch {
-    await m.reply("❌ Error al obtener el audio.")
+  } catch (e) {
+    await conn.reply(m.chat, `❌ ERROR\n${e}`, m)
   }
 }
 
-const cleanName = t =>
-  t.replace(/[^\w\s.-]/gi, "").substring(0, 60)
-
-const formatViews = v => {
-  if (typeof v !== "number") return v
-  if (v >= 1e9) return (v / 1e9).toFixed(1) + "B"
-  if (v >= 1e6) return (v / 1e6).toFixed(1) + "M"
-  if (v >= 1e3) return (v / 1e3).toFixed(1) + "K"
-  return v.toString()
-}
-
-handler.command = ["play", "yt", "mp3"]
-handler.tags = ["descargas"]
-
+handler.command = ['play', 'mp3']
 export default handler
